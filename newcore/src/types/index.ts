@@ -144,11 +144,26 @@ export interface Tool {
   execute(input: ToolInput, context: ToolContext): Promise<ToolResult>;
 }
 
+export interface WhiteboardMessage {
+  fromAgentId: string;
+  toAgentId: string;
+  content: string;
+  timestamp: number;
+}
+
+export interface Whiteboard {
+  postMessage(message: Omit<WhiteboardMessage, 'timestamp'>): void;
+  getMessages(agentId: string): WhiteboardMessage[];
+  clear(agentId: string): void;
+}
+
 export interface ToolContext {
   workspaceDir: string;
   agentId: string;
   policyEngine: PolicyChecker;
   auditLog: AuditWriter;
+  fileLocks: Set<string>;
+  whiteboard: Whiteboard;
 }
 
 // ── Policy Types ──

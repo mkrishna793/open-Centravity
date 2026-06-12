@@ -8,7 +8,10 @@ export async function getDb() {
   if (dbClient) return dbClient;
 
   const config = getConfig();
-  const dbPath = join(process.cwd(), 'data', 'opengravity.db');
+  // Ensure independent db connection per worker when testing
+  const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST;
+  const dbName = isTest ? `opengravity_test_${Date.now()}_${Math.random()}.db` : 'opengravity.db';
+  const dbPath = join(process.cwd(), 'data', dbName);
   
   dbClient = createClient({
     url: `file:${dbPath}`,

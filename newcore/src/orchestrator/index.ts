@@ -6,7 +6,7 @@
 import { EventEmitter } from 'events';
 import { existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
-import type { AgentConfig, AgentStatus, EngineEvent } from '../types/index.js';
+import type { AgentConfig, AgentStatus, EngineEvent, Whiteboard, WhiteboardMessage } from '../types/index.js';
 import { ModelGateway } from '../gateway/index.js';
 import { ToolRegistry } from '../tools/index.js';
 import { ArtifactStore } from '../artifacts/index.js';
@@ -24,6 +24,20 @@ export class AgentOrchestrator extends EventEmitter {
   private artifacts: ArtifactStore;
   private audit: AuditLogger;
   private policy: PolicyEngine;
+  private fileLocks = new Set<string>();
+  private whiteboardMessages: WhiteboardMessage[] = [];
+
+  public whiteboard: Whiteboard = {
+    postMessage: (msg: Omit<WhiteboardMessage, 'timestamp'>) => {
+      this.whiteboardMessages.push({ ...msg, timestamp: Date.now() });
+    },
+    getMessages: (agentId: string) => {
+      return this.whiteboardMessages.filter(m => m.toAgentId === agentId || m.toAgentId === 'all');
+    },
+    clear: (agentId: string) => {
+      this.whiteboardMessages = this.whiteboardMessages.filter(m => m.toAgentId !== agentId && m.toAgentId !== 'all');
+    }
+  };
 
   constructor() {
     super();
@@ -58,6 +72,8 @@ export class AgentOrchestrator extends EventEmitter {
     const agent = new Agent(
       agentConfig, this.gateway, this.tools,
       this.artifacts, this.audit, this.policy,
+      this.fileLocks,
+      this.whiteboard,
     );
 
     // Forward agent events

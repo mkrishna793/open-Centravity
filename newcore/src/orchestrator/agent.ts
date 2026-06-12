@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
   AgentConfig, AgentState, AgentStatus, ChatMessage,
   CompletionRequest, ExecutionPlan, PlanStep, ToolResult,
-  ToolContext, EngineEvent,
+  ToolContext, EngineEvent, Whiteboard,
 } from '../types/index.js';
 import type { ModelGateway } from '../gateway/index.js';
 import type { ToolRegistry } from '../tools/index.js';
@@ -35,7 +35,7 @@ When asked to create a plan, respond with JSON matching this schema:
   ]
 }
 
-Available tools: read_file, write_file, list_directory, run_command, search_code, semantic_search, python_sandbox, delegate_task, git_operation, lint_code, type_check, z3_verify
+Available tools: read_file, write_file, list_directory, run_command, search_code, semantic_search, python_sandbox, delegate_task, whiteboard_post, git_operation, lint_code, type_check, z3_verify
 `;
 
 export class Agent extends EventEmitter {
@@ -62,6 +62,8 @@ export class Agent extends EventEmitter {
     private artifacts: ArtifactStore,
     private audit: AuditLogger,
     private policy: PolicyEngine,
+    private fileLocks: Set<string> = new Set(),
+    private whiteboard?: Whiteboard,
   ) {
     super();
     this.id = config.id;
@@ -160,6 +162,9 @@ export class Agent extends EventEmitter {
     if (this.resumeResolver) {
       this.resumeResolver(approved);
       this.resumeResolver = null;
+    } else {
+      // If we approve before it pauses, auto-resolve it
+      this.resumeResolver = ((val: boolean) => {}) as any;
     }
   }
 
@@ -275,6 +280,8 @@ export class Agent extends EventEmitter {
       agentId: this.id,
       policyEngine: this.policy,
       auditLog: this.audit,
+      fileLocks: this.fileLocks,
+      whiteboard: this.whiteboard || { postMessage: () => {}, getMessages: () => [], clear: () => {} },
     };
 
     for (let i = this.currentStep; i < this.plan.steps.length; i++) {
@@ -308,11 +315,15 @@ export class Agent extends EventEmitter {
       if (step.tool === 'python_sandbox') {
         await this.setState('waiting_feedback');
         
-        const approved = await new Promise<boolean>((resolve) => {
-          this.resumeResolver = resolve;
-          console.log(`\n[HitL] 🛑 Agent ${this.id} paused for HitL approval on step ${step.id}`);
-          console.log(`[HitL] API: POST /agents/${this.id}/approve  or  POST /agents/${this.id}/reject\n`);
-        });
+        let approved = true;
+        if (this.resumeResolver === null) {
+           approved = await new Promise<boolean>((resolve) => {
+             this.resumeResolver = resolve;
+             console.log(`\n[HitL] 🛑 Agent ${this.id} paused for HitL approval on step ${step.id}`);
+             console.log(`[HitL] API: POST /agents/${this.id}/approve  or  POST /agents/${this.id}/reject\n`);
+           });
+        }
+        this.resumeResolver = null;
 
         await this.setState('executing');
         
@@ -383,9 +394,18 @@ export class Agent extends EventEmitter {
   }
 
   private async executeLLMStep(step: PlanStep, toolContext: ToolContext): Promise<ToolResult> {
+    let whiteboardInjection = "";
+    if (this.whiteboard) {
+      const messages = this.whiteboard.getMessages(this.id);
+      if (messages.length > 0) {
+        whiteboardInjection = "\n\n[NEW WHITEBOARD MESSAGES FROM PEERS]:\n" + messages.map(m => `From ${m.fromAgentId}: ${m.content}`).join("\n");
+        this.whiteboard.clear(this.id);
+      }
+    }
+
     this.messages.push({
       role: 'user',
-      content: `Execute step ${step.id}: ${step.description}\n\nUse one of the available tools to accomplish this.`,
+      content: `Execute step ${step.id}: ${step.description}\n\nUse one of the available tools to accomplish this.${whiteboardInjection}`,
     });
 
     const toolDefs = this.tools.getDefinitions(this.config.tools.length > 0 ? this.config.tools : undefined);
