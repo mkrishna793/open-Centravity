@@ -4,7 +4,6 @@
   <br />
   <h1>🌌 Open Anticentravity</h1>
 
-  [**🚀 Download Now**](https://anticentravity.google)
   <p><b>The Open-Source, Universal AI Gateway for Agentic Development</b></p>
   <p>
     <i>An open, community-driven effort to build a truly model-agnostic alternative to proprietary agentic coding platforms.</i>

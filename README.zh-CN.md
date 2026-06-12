@@ -4,7 +4,6 @@
   <br />
   <h1>🌌 Open Anticentravity (中文版)</h1>
 
-  [**🚀 立即下载**](https://anticentravity.google)
   <p><b>用于代理开发的开源通用 AI 网关</b></p>
   <p>
     <i>一个开放的、社区驱动的努力，旨在为专有的代理编码平台构建一个真正的模型无关的替代方案。</i>
