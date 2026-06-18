@@ -95,15 +95,15 @@ program
     });
 
     console.log('\n  ════════════════════════════════');
-    console.log(`  ${status.state === 'completed' ? '✅ Task completed' : '❌ Task failed'}`);
-    console.log(`  Steps: ${status.currentStep}/${status.totalSteps}`);
-    console.log(`  Artifacts: ${status.artifacts.length}`);
-    console.log(`  Duration: ${status.updatedAt - status.startedAt}ms`);
+    console.log(`  ${status.state === 'completed' ? chalk.green.bold('✅ Task completed') : chalk.red.bold('❌ Task failed')}`);
+    console.log(`  Steps: ${chalk.cyan(status.currentStep)}/${chalk.cyan(status.totalSteps)}`);
+    console.log(`  Artifacts: ${chalk.yellow(status.artifacts.length)}`);
+    console.log(`  Duration: ${chalk.gray(status.updatedAt - status.startedAt + 'ms')}`);
     console.log('  ════════════════════════════════\n');
 
     // Print audit summary
     const auditStats = engine.getAudit().getStats();
-    console.log(`  Audit: ${auditStats.total} actions (${auditStats.success} ✅, ${auditStats.failure} ❌, ${auditStats.blocked} 🚫)\n`);
+    console.log(`  Audit: ${chalk.white(auditStats.total)} actions (${chalk.green(auditStats.success + ' ✅')}, ${chalk.red(auditStats.failure + ' ❌')}, ${chalk.yellow(auditStats.blocked + ' 🚫')})\n`);
 
     // Await any pending background writes (e.g. audit logs, artifact indexing) before exiting
     await awaitPendingWrites();
@@ -186,12 +186,12 @@ program
     const engine = new AgentOrchestrator();
     const tools = engine.getTools().getAll();
 
-    console.log('\n  🔧 Available Tools\n');
+    printBanner('Available Tools');
     for (const t of tools) {
-      console.log(`    • ${t.name}`);
-      console.log(`      ${t.description.split('\n')[0]}`);
+      console.log(`    ${chalk.cyan('•')} ${chalk.white.bold(t.name)}`);
+      console.log(`      ${chalk.gray(t.description.split('\n')[0])}`);
     }
-    console.log(`\n  Total: ${tools.length} tools\n`);
+    console.log(`\n  Total: ${tools.length} tools registered\n`);
   });
 
 // ── Info ──
@@ -221,6 +221,7 @@ program
   .option('-p, --port <port>', 'Port to listen on', '3777')
   .action(async (opts: Record<string, string>) => {
     loadConfig({ port: parseInt(opts.port) });
+    printBanner('API Server');
     await startServer();
   });
 
@@ -272,14 +273,15 @@ swarmsCmd.action(async () => {
     return;
   }
 
-  console.log(`  ${pad('ID', 16)} ${pad('STATUS', 12)} ${pad('ROOT_TASK', 52)} ${pad('CREATED_AT', 24)}`);
-  console.log('  ' + '─'.repeat(108));
+  console.log(`  ${chalk.gray(pad('ID', 16))} ${chalk.gray(pad('STATUS', 12))} ${chalk.gray(pad('ROOT_TASK', 52))} ${chalk.gray(pad('CREATED_AT', 24))}`);
+  console.log('  ' + chalk.gray('─'.repeat(108)));
   for (const s of swarms) {
     const task = s.rootTask.length > 50 ? s.rootTask.slice(0, 47) + '...' : s.rootTask;
     const created = new Date(s.createdAt).toISOString();
-    console.log(`  ${pad(s.id, 16)} ${pad(s.status, 12)} ${pad(task, 52)} ${pad(created, 24)}`);
+    const statusColor = s.status === 'completed' ? chalk.green : (s.status === 'executing' || s.status === 'active' ? chalk.cyan : (s.status === 'failed' ? chalk.red : chalk.white));
+    console.log(`  ${pad(s.id, 16)} ${statusColor(pad(s.status, 12))} ${pad(task, 52)} ${chalk.gray(created)}`);
   }
-  console.log(`\n  Total: ${swarms.length} swarm(s)\n`);
+  console.log(`\n  Total: ${chalk.cyan(swarms.length)} swarm(s)\n`);
 });
 
 // ── Swarms: inspect ──
