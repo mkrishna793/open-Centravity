@@ -1,26 +1,58 @@
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
- "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
-<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
- width="640.000000pt" height="640.000000pt" viewBox="0 0 640.000000 640.000000"
- preserveAspectRatio="xMidYMid meet">
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Vibrant Futuristic Gradients -->
+    <linearGradient id="cyanToPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#BF00FF" />
+    </linearGradient>
 
-<g transform="translate(0.000000,640.000000) scale(0.100000,-0.100000)"
-fill="#000000" stroke="none">
-<path d="M0 3200 l0 -3200 3200 0 3200 0 0 3200 0 3200 -3200 0 -3200 0 0
--3200z m2882 810 c31 -63 82 -169 114 -235 31 -66 101 -210 154 -320 54 -110
-120 -247 148 -305 101 -212 205 -427 239 -496 l35 -71 286 -7 c158 -4 321 -4
-362 0 176 14 309 90 340 192 4 15 11 35 15 44 6 16 -7 18 -177 20 l-183 3 0
-185 0 185 500 0 500 0 0 -490 0 -490 -182 -3 -183 -2 0 144 0 145 -83 -82
-c-97 -95 -191 -154 -297 -186 -67 -21 -106 -24 -395 -32 -176 -5 -423 -6 -548
--2 l-228 8 -15 25 c-14 25 -220 449 -314 645 -26 55 -109 226 -185 380 -75
-154 -159 326 -186 383 l-49 102 -125 0 c-69 0 -128 1 -132 2 -10 2 -267 -515
--571 -1149 l-20 -43 515 -2 514 -3 34 -65 c27 -53 120 -242 133 -272 2 -5
--404 -8 -902 -8 -740 0 -908 2 -912 13 -2 7 25 74 62 148 297 600 752 1526
-799 1624 21 44 47 92 57 108 l20 27 401 -2 402 -3 57 -115z m1853 86 c44 -16
-96 -39 115 -50 55 -31 151 -110 190 -155 72 -84 144 -226 152 -297 l3 -29
--187 -3 -187 -2 -34 50 c-38 56 -80 91 -144 121 -40 18 -69 19 -536 19 -272 0
--541 3 -598 7 l-104 6 -82 171 c-46 95 -83 177 -83 184 0 10 146 12 708 10
-l707 -3 80 -29z"/>
-</g>
+    <radialGradient id="centralGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#00F5FF" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#000428" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="coreGradient" x1="256" y1="180" x2="256" y2="332" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#7A26C1" />
+    </linearGradient>
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Ambience -->
+  <rect width="512" height="512" fill="transparent" />
+  <circle cx="256" cy="256" r="220" fill="url(#centralGlow)" />
+
+  <!-- The "Centravity" Orbitals - 3 Interlocking 'C' Segments -->
+  <g filter="url(#softGlow)">
+    <!-- Segment 1 -->
+    <path d="M256 80 C352.8 80 432 159.2 432 256 C432 290 422 322 405 348" 
+          stroke="url(#cyanToPurple)" stroke-width="32" stroke-linecap="round" />
+    
+    <!-- Segment 2 -->
+    <path d="M370 410 C338 430 300 442 256 442 C159.2 442 80 362.8 80 256 C80 230 85 205 96 182" 
+          stroke="url(#cyanToPurple)" stroke-width="32" stroke-linecap="round" />
+
+    <!-- Segment 3 -->
+    <path d="M142 102 C174 88 214 80 256 80" 
+          stroke="url(#cyanToPurple)" stroke-width="32" stroke-linecap="round" />
+  </g>
+
+  <!-- Central Hexagonal AI Core -->
+  <path d="M256 180 L322 218 V294 L256 332 L190 294 V218 Z" fill="url(#coreGradient)" filter="url(#softGlow)">
+    <animateTransform attributeName="transform" type="rotate" from="0 256 256" to="360 256 256" dur="30s" repeatCount="indefinite" />
+  </path>
+
+  <!-- Connective Nodes -->
+  <circle cx="256" cy="80" r="10" fill="white" filter="url(#softGlow)" />
+  <circle cx="405" cy="348" r="10" fill="white" filter="url(#softGlow)" />
+  <circle cx="96" cy="182" r="10" fill="white" filter="url(#softGlow)" />
+
+  <!-- Subtle Inner Connectivity Lines -->
+  <line x1="256" y1="180" x2="256" y2="80" stroke="#00F5FF" stroke-width="2" stroke-dasharray="4 4" opacity="0.6" />
+  <line x1="322" y1="294" x2="405" y2="348" stroke="#BF00FF" stroke-width="2" stroke-dasharray="4 4" opacity="0.6" />
+  <line x1="190" y1="218" x2="96" y2="182" stroke="#00F5FF" stroke-width="2" stroke-dasharray="4 4" opacity="0.6" />
 </svg>
