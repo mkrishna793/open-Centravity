@@ -1,0 +1,23 @@
+# ═══════════════════════════════════════════════════════════════
+# Velocity — Development Dockerfile
+# Hot-reload via tsx watch + live src/ volume mount
+# ═══════════════════════════════════════════════════════════════
+
+FROM node:20-alpine
+WORKDIR /app
+
+# Native build tools for z3-solver + @libsql/client
+RUN apk add --no-cache python3 make g++ libc6-compat
+
+COPY newcore/package*.json ./
+RUN npm ci
+
+COPY newcore/ .
+
+# Create volume mount points
+RUN mkdir -p workspaces artifacts data
+
+EXPOSE 3777
+
+# Hot-reload — src/ is live-mounted via docker-compose volumes
+CMD ["npm", "run", "dev"]

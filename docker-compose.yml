@@ -1,0 +1,55 @@
+# ═══════════════════════════════════════════════════════════════
+# Velocity — Docker Compose
+# Usage:
+#   Production:  docker compose up --build
+#   Development: docker compose --profile dev up
+# ═══════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+
+  # ── Production ──────────────────────────────────────────────
+  velocity:
+    build:
+      context: .
+      dockerfile: newcore/Dockerfile
+    container_name: velocity-core
+    ports:
+      - "3777:3777"
+    env_file:
+      - newcore/.env
+    volumes:
+      - workspaces:/app/workspaces
+      - artifacts:/app/artifacts
+      - data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3777/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── Development (hot-reload) ─────────────────────────────────
+  velocity-dev:
+    build:
+      context: .
+      dockerfile: newcore/Dockerfile.dev
+    container_name: velocity-dev
+    profiles: ["dev"]
+    ports:
+      - "3777:3777"
+    env_file:
+      - newcore/.env
+    volumes:
+      - ./newcore/src:/app/src        # live source mount for hot-reload
+      - workspaces:/app/workspaces
+      - artifacts:/app/artifacts
+      - data:/app/data
+    restart: unless-stopped
+
+volumes:
+  workspaces:
+  artifacts:
+  data:
