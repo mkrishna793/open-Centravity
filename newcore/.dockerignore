@@ -1,0 +1,33 @@
+# ═══════════════════════════════════════════════════════════════
+# Velocity — .dockerignore
+# Keeps build context lean — excludes dev/test/config artifacts
+# ═══════════════════════════════════════════════════════════════
+
+# Dependencies (reinstalled inside container)
+node_modules
+
+# Build output
+dist
+
+# Environment files (mounted at runtime)
+.env
+.env.*
+!.env.example
+
+# Tests
+tests
+*.test.ts
+*.spec.ts
+coverage
+
+# Git
+.git
+.github
+
+# Docs
+*.md
+docs
+
+# Misc
+.DS_Store
+*.log
