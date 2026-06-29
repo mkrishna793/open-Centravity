@@ -86,7 +86,7 @@ describe('ArtifactStore', () => {
       expect(artifact.createdAt).toBeGreaterThan(0);
     });
 
-    it('persists the artifact via save()', () => {
+    it('persists the artifact via save()', async () => {
       const writeMock = vi.mocked(await import('fs')).writeFileSync as ReturnType<typeof vi.fn>;
       store.createPlanArtifact(AGENT_ID, MOCK_PLAN);
       expect(writeMock).toHaveBeenCalledOnce();
@@ -123,7 +123,7 @@ describe('ArtifactStore', () => {
   });
 
   describe('get()', () => {
-    it('returns the artifact by agentId + artifactId', () => {
+    it('returns the artifact by agentId + artifactId', async () => {
       const artifact = store.createLogArtifact(AGENT_ID, 'title', 'body');
       // Simulate file read returning the artifact
       vi.mocked(await import('fs')).readFileSync = vi.fn().mockReturnValue(
@@ -133,19 +133,19 @@ describe('ArtifactStore', () => {
       expect(retrieved).toMatchObject({ id: artifact.id, type: 'log' });
     });
 
-    it('returns null when the file does not exist', () => {
+    it('returns null when the file does not exist', async () => {
       vi.mocked(await import('fs')).existsSync = vi.fn().mockReturnValue(false);
       expect(store.get(AGENT_ID, 'does-not-exist')).toBeNull();
     });
   });
 
   describe('listByAgent()', () => {
-    it('returns an empty array when the agent directory does not exist', () => {
+    it('returns an empty array when the agent directory does not exist', async () => {
       vi.mocked(await import('fs')).existsSync = vi.fn().mockReturnValue(false);
       expect(store.listByAgent(AGENT_ID)).toEqual([]);
     });
 
-    it('returns parsed artifact objects sorted by createdAt descending', () => {
+    it('returns parsed artifact objects sorted by createdAt descending', async () => {
       const older = store.createLogArtifact(AGENT_ID, 'older', 'a');
       // ensure distinct timestamps
       const newer = { ...older, id: 'log-99999999999', createdAt: older.createdAt + 1000, title: 'newer' };

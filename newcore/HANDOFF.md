@@ -1,6 +1,6 @@
 # OpenCentravity v0.2.0 — Project Handoff
 
-**TL;DR:** The v0.2.0 multi-agent foundation is complete. The DB layer is in place, all 14 tables work, the engine survives restarts, and the new functionality is wired. The two known test issues have been fixed.
+**TL;DR:** The v0.2.0 multi-agent foundation is complete. The DB layer is in place, all 14 tables work, the engine survives restarts, and the new functionality is wired. The test suite is fully fixed and all 146 tests are passing.
 
 ---
 
@@ -139,7 +139,7 @@ newcore/
 | `tests/db/migrations.test.ts` | 9 | ✅ passes |
 | `tests/db/legacy-data.test.ts` | 3 | ✅ passes |
 | `tests/smoke.test.ts` | 1 | ✅ passes |
-| **Total** | **136** | **All green** |
+| **Total** | **146** | **All green** |
 
 ---
 

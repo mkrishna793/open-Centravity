@@ -184,6 +184,17 @@ describe('legacy data migration', () => {
       currentStep INTEGER NOT NULL DEFAULT 0,
       startedAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL
     )`);
+    await legacy.execute(`CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      agentId TEXT NOT NULL, role TEXT NOT NULL, content TEXT NOT NULL,
+      toolCalls TEXT, toolCallId TEXT, name TEXT,
+      createdAt INTEGER NOT NULL,
+      FOREIGN KEY(agentId) REFERENCES agents(id)
+    )`);
+    await legacy.execute(`CREATE TABLE IF NOT EXISTS plans (
+      agentId TEXT PRIMARY KEY, planJson TEXT NOT NULL,
+      FOREIGN KEY(agentId) REFERENCES agents(id)
+    )`);
     // Insert an agent in the legacy DB so it passes the empty check
     await legacy.execute({
       sql: `INSERT INTO agents (id, task, model, state, workspaceDir, currentStep, startedAt, updatedAt)
@@ -198,16 +209,24 @@ describe('legacy data migration', () => {
     // and short-circuits.
     const preId = uuidv4();
     await newDb.execute({
-      sql: `INSERT INTO agents (id, task, model, state, workspaceDir, currentStep, startedAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [preId, 'preexisting', 'mock', 'idle', './w', 0, 1, 1],
+      sql: `INSERT INTO agents (
+              id, task, model, state, workspaceDir, currentStep,
+              startedAt, updatedAt, role, artifacts_count, tool_calls_count
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [preId, 'preexisting', 'mock', 'idle', './w', 0, 1, 1, 'coder', 0, 0],
     });
     newDb.close();
 
     await withEnv({}, async () => {
       const { copyFileSync } = await import('fs');
-      copyFileSync(LEGACY_DB, resolve(process.cwd(), 'data', 'opengravity.db'));
-      copyFileSync(NEW_DB, resolve(process.cwd(), 'data', 'opencentravity.db'));
+      // NEW_DB has the preId agent. We must copy it so it serves as the v2 DB.
+      // But it might have WAL files we need to sync/copy.
+      const dbDir = resolve(process.cwd(), 'data');
+      for (const ext of ['', '-wal', '-shm']) {
+        if (existsSync(LEGACY_DB + ext)) copyFileSync(LEGACY_DB + ext, resolve(dbDir, 'opengravity.db' + ext));
+        if (existsSync(NEW_DB + ext)) copyFileSync(NEW_DB + ext, resolve(dbDir, 'opencentravity.db' + ext));
+      }
+
       const r = await runScript();
       for (const f of ['opengravity.db', 'opencentravity.db']) {
         const p = resolve(process.cwd(), 'data', f);
@@ -215,6 +234,7 @@ describe('legacy data migration', () => {
           try { rmSync(p + ext, { force: true }); } catch { /* ignore */ }
         }
       }
+      if (r.code !== 0) console.error('stderr:', r.stderr, 'stdout:', r.stdout);
       expect(r.code).toBe(0);
       expect(r.stdout).toMatch(/Skipping legacy copy/);
     });

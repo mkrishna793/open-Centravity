@@ -59,7 +59,7 @@ Consolidated duplicate, additive, and suffixed CLI commands down to a single cle
 | `tests/db/migrations.test.ts` | 9 | ✅ passes |
 | `tests/db/legacy-data.test.ts` | 3 | ✅ passes |
 | `tests/smoke.test.ts` | 1 | ✅ passes |
-| **Total** | **136** | **All green** |
+| **Total** | **146** | **All green** |
 
 ---
 
